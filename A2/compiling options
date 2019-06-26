@@ -1,0 +1,177 @@
+
+Using #define _POSIX_C_SOURCE 200809L
+Sucessfull compilation for all code
+Recommended flag curtesy of
+https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
+============================================================================
+============================================================================
+
+
+Including #define _POSIX_C_SOURCE 200009L
+Error for all 6 cases was
+========================================================================
+main.c: In function ‘main’:
+main.c:41:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   41 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:41:21: note: each undeclared identifier is reported only once for each function it appears in
+
+==========================================================================
+
+
+Including #define _POSIX_C_SOURCE 200009L
+Error for all 6 cases was
+========================================================================
+main.c: In function ‘main’:
+main.c:41:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   41 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:41:21: note: each undeclared identifier is reported only once for each function it appears in
+
+==========================================================================
+
+
+Having No _POSIX_C_SOURCE definition resulted in the following, (only std non ansi compilation works)
+
+=================================c99====================================
+main.c: In function ‘main’:
+main.c:37:20: error: storage size of ‘action’ isn’t known
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+main.c:39:3: warning: implicit declaration of function ‘sigemptyset’ [-Wimplicit-function-declaration]
+   39 |   sigemptyset (&action.sa_mask);
+      |   ^~~~~~~~~~~
+main.c:40:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   40 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:40:21: note: each undeclared identifier is reported only once for each function it appears in
+In file included from main.c:6:
+main.c:41:11: warning: implicit declaration of function ‘sigaction’ [-Wimplicit-function-declaration]
+   41 |   assert (sigaction (SIGUSR1, &action, NULL) == 0);
+      |           ^~~~~~~~~
+main.c:64:13: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   64 |     assert( kill(childpid, SIGUSR1 ) == 0 );
+      |             ^~~~
+main.c:37:20: warning: unused variable ‘action’ [-Wunused-variable]
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+In file included from child.c:4:
+child.c: In function ‘main’:
+child.c:23:11: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   23 |   assert( kill(ppid, SIGUSR1 ) == 0 );
+      |           ^~~~
+==================================c18==================================
+main.c: In function ‘main’:
+main.c:37:20: error: storage size of ‘action’ isn’t known
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+main.c:39:3: warning: implicit declaration of function ‘sigemptyset’ [-Wimplicit-function-declaration]
+   39 |   sigemptyset (&action.sa_mask);
+      |   ^~~~~~~~~~~
+main.c:40:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   40 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:40:21: note: each undeclared identifier is reported only once for each function it appears in
+In file included from main.c:6:
+main.c:41:11: warning: implicit declaration of function ‘sigaction’ [-Wimplicit-function-declaration]
+   41 |   assert (sigaction (SIGUSR1, &action, NULL) == 0);
+      |           ^~~~~~~~~
+main.c:64:13: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   64 |     assert( kill(childpid, SIGUSR1 ) == 0 );
+      |             ^~~~
+main.c:37:20: warning: unused variable ‘action’ [-Wunused-variable]
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+In file included from child.c:4:
+child.c: In function ‘main’:
+child.c:23:11: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   23 |   assert( kill(ppid, SIGUSR1 ) == 0 );
+      |           ^~~~
+=================================STD====================================
+=================================c99-A====================================
+main.c: In function ‘main’:
+main.c:37:20: error: storage size of ‘action’ isn’t known
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+main.c:39:3: warning: implicit declaration of function ‘sigemptyset’ [-Wimplicit-function-declaration]
+   39 |   sigemptyset (&action.sa_mask);
+      |   ^~~~~~~~~~~
+main.c:40:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   40 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:40:21: note: each undeclared identifier is reported only once for each function it appears in
+In file included from main.c:6:
+main.c:41:11: warning: implicit declaration of function ‘sigaction’ [-Wimplicit-function-declaration]
+   41 |   assert (sigaction (SIGUSR1, &action, NULL) == 0);
+      |           ^~~~~~~~~
+main.c:64:13: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   64 |     assert( kill(childpid, SIGUSR1 ) == 0 );
+      |             ^~~~
+main.c:37:20: warning: unused variable ‘action’ [-Wunused-variable]
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+In file included from child.c:4:
+child.c: In function ‘main’:
+child.c:23:11: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   23 |   assert( kill(ppid, SIGUSR1 ) == 0 );
+      |           ^~~~
+==================================c18-A==================================
+main.c: In function ‘main’:
+main.c:37:20: error: storage size of ‘action’ isn’t known
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+main.c:39:3: warning: implicit declaration of function ‘sigemptyset’ [-Wimplicit-function-declaration]
+   39 |   sigemptyset (&action.sa_mask);
+      |   ^~~~~~~~~~~
+main.c:40:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   40 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:40:21: note: each undeclared identifier is reported only once for each function it appears in
+In file included from main.c:6:
+main.c:41:11: warning: implicit declaration of function ‘sigaction’ [-Wimplicit-function-declaration]
+   41 |   assert (sigaction (SIGUSR1, &action, NULL) == 0);
+      |           ^~~~~~~~~
+main.c:64:13: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   64 |     assert( kill(childpid, SIGUSR1 ) == 0 );
+      |             ^~~~
+main.c:37:20: warning: unused variable ‘action’ [-Wunused-variable]
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+In file included from child.c:4:
+child.c: In function ‘main’:
+child.c:23:11: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   23 |   assert( kill(ppid, SIGUSR1 ) == 0 );
+      |           ^~~~
+=================================STD-A====================================
+main.c: In function ‘main’:
+main.c:37:20: error: storage size of ‘action’ isn’t known
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+main.c:39:3: warning: implicit declaration of function ‘sigemptyset’ [-Wimplicit-function-declaration]
+   39 |   sigemptyset (&action.sa_mask);
+      |   ^~~~~~~~~~~
+main.c:40:21: error: ‘SA_RESTART’ undeclared (first use in this function); did you mean ‘ERESTART’?
+   40 |   action.sa_flags = SA_RESTART;
+      |                     ^~~~~~~~~~
+      |                     ERESTART
+main.c:40:21: note: each undeclared identifier is reported only once for each function it appears in
+In file included from main.c:6:
+main.c:41:11: warning: implicit declaration of function ‘sigaction’ [-Wimplicit-function-declaration]
+   41 |   assert (sigaction (SIGUSR1, &action, NULL) == 0);
+      |           ^~~~~~~~~
+main.c:64:13: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   64 |     assert( kill(childpid, SIGUSR1 ) == 0 );
+      |             ^~~~
+main.c:37:20: warning: unused variable ‘action’ [-Wunused-variable]
+   37 |   struct sigaction action;
+      |                    ^~~~~~
+In file included from child.c:4:
+child.c: In function ‘main’:
+child.c:23:11: warning: implicit declaration of function ‘kill’ [-Wimplicit-function-declaration]
+   23 |   assert( kill(ppid, SIGUSR1 ) == 0 );
