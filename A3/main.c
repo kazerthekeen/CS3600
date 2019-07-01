@@ -7,24 +7,80 @@
 #include <assert.h>
 #include <signal.h>
 #include <sys/types.h>
+
+
+
+
 /*Recieved some assistance from the following
-  - This stack post for how to set up a handler
-    https://stackoverflow.com/questions/49593009/sigaction-structure
-  - Talked extensivly to Andrew Pena
+  - Talked with Andrew Pena
+  - eyetoeh was copied from program becouse I was in part to lazy to figure out
+  how to get the information gathered as is.
  */
+
+
+int eye2eh(int i, char *buffer, int buffersize, int base) {
+    if (i < 0 || buffersize <= 1 || base < 2 || base > 16) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    buffer[buffersize-1] = '\0';
+
+    int count = 0;
+    const char *digits = "0123456789ABCDEF";
+    for (int j = buffersize-2; j >= 0; j--) {
+        if (i == 0 && count != 0) {
+            buffer[j] = ' ';
+        }
+        else {
+            buffer[j] = digits[i%base];
+            i = i/base;
+            count++;
+        }
+    }
+
+    if (i != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return count;
+}
+
 void handler (int sig){
   switch(sig){
-    case SIGUSR1 :
-      assert( write(1, "Recieved User Signal 1\n", 23) > 0);
+    case SIGINT :
+      assert( write(1, "Recieved SIGINT\n", 16) > 0);
+      assert( kill(getppid(), SIGINT) == 0);
+      exit(5);
       break;
-    case SIGUSR2 :
-      assert( write(1, "Recieved User Signal 2\n", 23) > 0);
+
+    case SIGCHLD:
+      assert( write(1, "Recieved SIGCHLD\n", 17) > 0);
+      int status;
+      int e;
+      int result = -1;
+      e = wait(&status);
+
+      if (e < 0){
+        assert(write(1, "return failed\n", 14) != 0);
+        exit(EXIT_FAILURE);
+      } else{
+        char str[10];
+        int l = 1;
+        result = WEXITSTATUS(status);
+        l  = eye2eh(result, str, 10, 10);
+        assert(l != -1);
+        assert(write(1, "Child returned with status \n", 28) != 0);
+        assert(write(1, str, l) != 0);
+        assert(write(1, " \n", 2) != 0);
+
+        exit(1);
+      }
       break;
-    case SIGALRM :
-      assert( write(1, "Recieved alarm signal, is it time to do something else?\n", 56) > 0);
-      break;
+
     default :
-      assert( write(1, "Recieved unknown signal number.\n", 32) > 0);
+      assert( write(1, "Unknown signal recieved\n", 17) > 0);
       break;
   }
 
@@ -38,10 +94,9 @@ int main(int argc, char const *argv[]) {
   struct sigaction action;
   action.sa_handler = handler;
   sigemptyset (&action.sa_mask);
-  action.sa_flags = SA_RESTART;
-  assert (sigaction (SIGUSR1, &action, NULL) == 0);
-  assert (sigaction (SIGUSR2, &action, NULL) == 0);
-  assert (sigaction (SIGALRM, &action, NULL) == 0);
+  action.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+  assert (sigaction (SIGINT, &action, NULL) == 0);
+  assert (sigaction (SIGCHLD, &action, NULL) == 0);
 
   /*Fork*/
   childpid = fork();
@@ -62,18 +117,20 @@ int main(int argc, char const *argv[]) {
 
   /*Parent process*/
   if (childpid > 0){
-    assert( kill(childpid, SIGUSR1 ) == 0 );
-    int status;
-    int e;
-    assert(printf("Parent PID: %i\n", getpid()) != 0);
-    e = wait(&status);
 
-    if (e != 0 && WIFEXITED(status)== 0){
-      perror("waitpid");
-      exit(EXIT_FAILURE);
-    } else{
-      assert(printf("Child %i returned successfully.\n", childpid) != 0);
+    for( int i = 0; i<5; i++){
+      assert( printf("Parent is sending SIGSTOP\n") != 0 );
+      assert( kill(childpid, SIGSTOP ) == 0 );
+      assert( sleep(2) == 0 );
+      assert( printf("Parent is sending SIGCONT\n") != 0 );
+      assert( kill(childpid, SIGCONT ) == 0 );
+      assert( sleep(2) == 0 );
     }
+    assert( kill(childpid, SIGINT ) == 0 );
+
+    pause();
+    perror("pause");
+    exit(-1);
   }
 
   return(0);

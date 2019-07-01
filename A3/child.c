@@ -10,22 +10,15 @@
 /* Main program based off of program in man strtol
 Should be run as "counter num" */
 int main(int argc, char *argv[]){
-  int ppid = getppid();
 
-  assert(printf("Child PID: %i\n", getpid()) != 0);
+  ///Was having an issue with sleep preventing printf from working so used this implimentation of print
+  char str[40];
+  int len = sprintf(str, "Child Process %i running.\n", getpid());
 
-  if (argc != 1) {
-    assert(printf("Bad number of args, expecting 1 have: %i\n", argc) != 0);
-    exit(EXIT_FAILURE);
+  assert(len < 40);
+  while(1){
+    assert( write(1, str, len) != 0 );
+    assert( sleep(1) ==0 );
   }
-
-  errno = 0;
-  assert( kill(ppid, SIGUSR1 ) == 0 );
-  assert( kill(ppid, SIGUSR2 ) == 0 );
-  assert( kill(ppid, SIGALRM ) == 0 );
-  assert( kill(ppid, SIGALRM ) == 0 );
-  assert( kill(ppid, SIGALRM ) == 0 );
-
-
   exit(0);
 }

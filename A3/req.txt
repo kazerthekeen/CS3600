@@ -1,0 +1,23 @@
+Create a child.c that loops forever and prints "awake in PID" where PID is its process identifier, and then sleeps for one second.
+
+In parent.c do the following.
+
+Create a handler for SIGCHLD. Have it wait for the child's status and print that out. Call exit from the handler. This time, make sure you have
+
+action.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+
+in the setup of your SIGCHLD handler.
+
+Make sure all calls in the handler are async-safe.  See http://man7.org/linux/man-pages/man7/signal-safety.7.html See syscall.h for async-safe macros for printing strings and integers; you'll also need eye2eh.c for an async-safe integer to string function. syscall.h and eye2eh.c will be pre-loaded in the assignment submission page.
+
+Create a loop the runs five times. For each iteration do the following.
+
+        Print that the parent is going to SIGSTOP the child.
+        SIGSTOP the child.
+        Sleep for two seconds
+        Print that the parent is going to SIGCONT the child.
+        SIGCONT the child.
+        Sleep for two seconds
+
+After the loop has completed, send the child a SIGINT and make sure the parent's SIGCHLD handler is called and the child's status is reported.
+Call pause at the end of main so that the parent process doesn't exit from there.
