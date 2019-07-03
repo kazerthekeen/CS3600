@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <sys/types.h>
-
+#include <string.h>
 
 
 
@@ -17,6 +17,20 @@
   how to get the information gathered as is.
  */
 
+#define syscall(x) { \
+     (x); \
+     int err = errno; \
+     if (err) { \
+         fprintf(stderr, "In file %s at line %d: ", __FILE__, __LINE__); \
+         perror(#x); \
+         exit(err);} \
+     }
+
+#define WRITESTRING(STRING) \
+     syscall(write(STDOUT_FILENO, STRING, strlen(STRING)));
+
+#define WRITEINT(INT, LEN) { char buf[LEN]; \
+     syscall(eye2eh(INT, buf, LEN, 10)); WRITESTRING(buf); }
 
 int eye2eh(int i, char *buffer, int buffersize, int base) {
     if (i < 0 || buffersize <= 1 || base < 2 || base > 16) {
@@ -46,15 +60,8 @@ int eye2eh(int i, char *buffer, int buffersize, int base) {
 
     return count;
 }
-
 void handler (int sig){
   switch(sig){
-    case SIGINT :
-      assert( write(1, "Recieved SIGINT\n", 16) > 0);
-      assert( kill(getppid(), SIGINT) == 0);
-      exit(5);
-      break;
-
     case SIGCHLD:
       assert( write(1, "Recieved SIGCHLD\n", 17) > 0);
       int status;
@@ -65,18 +72,14 @@ void handler (int sig){
       if (e < 0){
         assert(write(1, "return failed\n", 14) != 0);
         exit(EXIT_FAILURE);
+      }else if(WIFSIGNALED(status)==0){
+        assert(write(1, "No returned status.\n", 18) != 0);
       } else{
-        char str[10];
-        int l = 1;
-        result = WEXITSTATUS(status);
-        l  = eye2eh(result, str, 10, 10);
-        assert(l != -1);
-        assert(write(1, "Child returned with status \n", 28) != 0);
-        assert(write(1, str, l) != 0);
-        assert(write(1, " \n", 2) != 0);
-
-        exit(1);
+        assert(write(1, "Return status:\n", 14) != 0);
+        result = WTERMSIG(status);
+        WRITEINT(result, 3);
       }
+      exit(1);
       break;
 
     default :
@@ -126,11 +129,12 @@ int main(int argc, char const *argv[]) {
       assert( kill(childpid, SIGCONT ) == 0 );
       assert( sleep(2) == 0 );
     }
+    assert( printf("Parent is sending SIGINT\n") != 0 );
     assert( kill(childpid, SIGINT ) == 0 );
 
     pause();
     perror("pause");
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
   return(0);
