@@ -8,7 +8,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <string.h>
-
+int eye2eh(int i, char *buffer, int buffersize, int base);
 
 
 /*Recieved some assistance from the following
@@ -32,34 +32,6 @@
 #define WRITEINT(INT, LEN) { char buf[LEN]; \
      syscall(eye2eh(INT, buf, LEN, 10)); WRITESTRING(buf); }
 
-int eye2eh(int i, char *buffer, int buffersize, int base) {
-    if (i < 0 || buffersize <= 1 || base < 2 || base > 16) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    buffer[buffersize-1] = '\0';
-
-    int count = 0;
-    const char *digits = "0123456789ABCDEF";
-    for (int j = buffersize-2; j >= 0; j--) {
-        if (i == 0 && count != 0) {
-            buffer[j] = ' ';
-        }
-        else {
-            buffer[j] = digits[i%base];
-            i = i/base;
-            count++;
-        }
-    }
-
-    if (i != 0) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    return count;
-}
 void handler (int sig){
   switch(sig){
     case SIGCHLD:
